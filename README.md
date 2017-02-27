@@ -1,7 +1,7 @@
 # vcardtools
 Automatically fix, split, normalize, group and merge/deduplicate vCard and VCF files (even large ones).
 
-# Use case
+## Use case
 
 ### Splitting
 
@@ -16,7 +16,7 @@ Identical to splitting, but it will group matching vCards (duplicates) into a di
 Identical to grouping, but instead of grouping matching vCards (duplicates) into a directory it will merge them into one unique vCard file with the most relevant name (the longuest name found).
 
 
-# Installation
+## Installation
 
 Requires python 3 (tested with 3.4, may work with 3.2).
 
@@ -33,7 +33,7 @@ apt install --no-install-recommends python3-pip
 
 Create a python virtual environment :
 ```
-python3 -m venv DIR vcardtools
+python3 -m venv vcardtools
 ```
 
 Install required python dependencies :
@@ -42,7 +42,7 @@ pip install vobject
 pip install fuzzywuzzy
 ```
 
-# Usage
+## Usage
 
 Run `python3 vcardtools.py`.
 
@@ -105,14 +105,14 @@ optional arguments:
                         default is: INFO
 ```
 
-# Notes
+## Notes
 
 It outputs only vCard 3.0 format, but accept 2.1 and 3.0 vCard format (even mixed).
 
 It uses logging as output, so adjust verbosity by adjusting the log level.
 
 
-# Tips
+## Tips
 
 If you already have multiple individual vCard/VCF file that you want to group/merge, just re-combine them together before runing the tool. They will be re-splitted and grouped/merged.
 
