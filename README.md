@@ -111,6 +111,10 @@ It outputs only vCard 3.0 format, but accept 2.1 and 3.0 vCard format (even mixe
 
 It uses logging as output, so adjust verbosity by adjusting the log level.
 
+It was made and tested on Linux without any knowledge of Windows environment, so it may or may not work on Windows.
+
+It was not unit-tested, but was extensively tested with mutliple real cases of all sort of different vCard/VCF files (hences the "fix" ability).
+
 
 ## Tips
 
