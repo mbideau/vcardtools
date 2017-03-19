@@ -59,6 +59,8 @@ OPTION_MATCH_APPROX_RATIO = 100
 OPTION_UPDATE_GROUP_KEY = True
 OPTION_FRENCH_TWEAKS = False
 
+SINGLE_INSTANCE_PROPERTIES = {'prodid', 'rev', 'uid'}
+
 def add_attributes(attributes, a):
     """
     Return void
@@ -382,6 +384,9 @@ def build_vcard(attributes):
     
     logging.debug("Building vcard ...")
     vcard = vCard()
+
+    defined_single_instance_properties = set()
+
     for a_name, a in attributes.items():
         #logging.debug("\tprocessing '%s' -> '%s'", a_name, a)
         if a:
@@ -430,6 +435,11 @@ def build_vcard(attributes):
                                 vcard.add(a_name).value = a_item
                                 logging.debug("\t%s: %s", a_name, a_item)
                             elif isinstance(a_item, ContentLine):
+                                if a_name in SINGLE_INSTANCE_PROPERTIES:
+                                    if a_name in defined_single_instance_properties:
+                                        continue
+                                    else:
+                                        defined_single_instance_properties.add(a_name)
                                 item_added = vcard.add(a_name)
                                 logging.debug("\t%s: %s", a_name, a_item.value)
                                 item_added.value = a_item.value
