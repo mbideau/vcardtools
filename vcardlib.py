@@ -39,7 +39,7 @@ EMAIL_USERS_ADD_DOMAIN = (\
 # pre-compile regex
 REGEX_ANYTHING_BETWEEN_PARENTHESES_OR_BRACES = re.compile(' *(\([^)]*\)|\[[^]]*\]) *')
 REGEX_ANYTHING_BUT_INDEX = re.compile('(.*)\([0-9]+\)$')
-REGEX_ICE = re.compile(' *(ICE[0-9]*) *', re.IGNORECASE)
+REGEX_ICE = re.compile(r'\b(ICE[0-9]*)\b', re.IGNORECASE)
 REGEX_ANY_DASH_OR_UNDERSCORE = re.compile('[_-]')
 REGEX_ANY_NUMBER = re.compile('[0-9]')
 REGEX_WITHOUT_EXTENSION = re.compile('(.+)\.[a-zA-Z]+$')
