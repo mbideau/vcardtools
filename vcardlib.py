@@ -935,7 +935,7 @@ def fix_and_convert_to_v3(file_path):
                         logging.debug("\tkey part: '%s'", key_part)
 
                     # prefix every known type with 'TYPE='
-                    new_key_part = re.sub(r';(PGP|PNG|JPEG|OGG|INTERNET|PREF|HOME|WORK|MAIN|CELL|FAX|VOICE)', ';TYPE=\\1', key_part)
+                    new_key_part = re.sub(r';(PGP|PNG|JPEG|GIF|OGG|INTERNET|PREF|HOME|WORK|MAIN|CELL|FAX|VOICE)', ';TYPE=\\1', key_part)
                     logging.debug("\tnew key part: %s", new_key_part)
 
                     # the key part has at least one 'TYPE='
