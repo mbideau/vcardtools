@@ -110,7 +110,7 @@ def main():
         elif args.log_level == 'ERROR':
             logging.basicConfig(level=logging.ERROR,format=log_format)
         else:
-            stderr.write("[ERROR] Invalid log level '" + args.log_level + "'\n")
+            stderr.write("[ERROR] Invalid log level '" + args.log_level + "'\n\n")
             parser.print_help()
             exit(2)
 
@@ -146,7 +146,7 @@ def main():
 
         # check DESTDIR argument
         if exists(args.dest_dir):
-            stderr.write("[ERROR] Directory '" + args.dest_dir + "' exists. Do not want to overwrite something\n")
+            stderr.write("[ERROR] Directory '" + args.dest_dir + "' exists. Do not want to overwrite something\n\n")
             parser.print_help()
             exit(2)
         # create DIR
@@ -157,11 +157,11 @@ def main():
         # check FILES argument
         for f in args.files:
             if not exists(f):
-                stderr.write("[ERROR] File '" + f + "' doesn't exist\n")
+                stderr.write("[ERROR] File '" + f + "' doesn't exist\n\n")
                 parser.print_help()
                 exit(2)
             elif not isfile(f):
-                stderr.write("[ERROR] '" + f + "' is not a regular file\n")
+                stderr.write("[ERROR] '" + f + "' is not a regular file\n\n")
                 parser.print_help()
                 exit(2)
 
