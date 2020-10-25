@@ -58,6 +58,7 @@ OPTION_MATCH_APPROX_MAX_DISTANCE = range(-3, 3)
 OPTION_MATCH_APPROX_RATIO = 100
 OPTION_UPDATE_GROUP_KEY = True
 OPTION_FRENCH_TWEAKS = False
+OPTION_DOT_NOT_FORCE_ESCAPE_COMAS = False
 
 SINGLE_INSTANCE_PROPERTIES = {'prodid', 'rev', 'uid'}
 
@@ -886,6 +887,8 @@ def fix_and_convert_to_v3(file_path):
                     logging.debug("\tmultiline value hack (joining this line with the previous)")
                     if last_line.replace('\n', '')[-1:] == '=':
                         last_line = re.sub('=$', '', last_line.replace('\n', '')) + '\n'
+                    if not OPTION_DOT_NOT_FORCE_ESCAPE_COMAS:
+                        line = re.sub('([^\\\\]|^),', '\\1\\,', line)
                     last_line = last_line.replace('\n', '') + line.strip() + '\n'
                     logging.debug("\tconcatened: '%s'", line.strip())
                     logging.debug("\t")
@@ -912,8 +915,12 @@ def fix_and_convert_to_v3(file_path):
                 # convert keys to upper case
                 key_part = new_line.rsplit(':')[0].upper()
                 logging.debug("\tkey part: '%s'", key_part)
+
                 rest_part = re.sub(r'^([^:]+):', '', new_line)
                 logging.debug("\trest part: '%s'", rest_part)
+                if not OPTION_DOT_NOT_FORCE_ESCAPE_COMAS:
+                    rest_part = re.sub('([^\\\\]|^),', '\\1\\,', rest_part)
+
                 new_line = key_part + ':' + rest_part
                 logging.debug("\tbuilt new line: %s", new_line)
 

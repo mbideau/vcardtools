@@ -86,6 +86,10 @@ def init_parser():
         help="Do not removes name in email, i.e.: keep email like the following untouched: \"John Doe\" <john@doe.com>" \
     )
     parser.add_argument( \
+        '--do-not-force-escape-comas', dest='do_not_force_escape_comas', action='store_true', \
+        help="Disable automatically escaping comas." \
+    )
+    parser.add_argument( \
         '-l', '--log-level', dest='log_level', default='INFO', \
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'], \
         help="the logging level in (DEBUG,INFO,WARNING,ERROR), default is: INFO" \
@@ -142,6 +146,9 @@ def main():
 
         # french tweaks
         vcardlib.OPTION_FRENCH_TWEAKS = args.french_tweaks
+
+        # coma auto escape
+        vcardlib.OPTION_DOT_NOT_FORCE_ESCAPE_COMAS = args.do_not_force_escape_comas
 
 
         # check DESTDIR argument
