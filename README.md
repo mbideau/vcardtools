@@ -60,7 +60,8 @@ usage: vcardtools.py [-h] [-g] [-m] [-x] [-c] [-n] [-f] [-a MATCH_ATTRIBUTES]
 Automatically fix, split, normalize, group and merge/deduplicate vCard and VCF files (even large ones).
 
 positional arguments:
-  DESTDIR               The directory that will contains VCF (vCard) files merged.
+  DESTDIR               The directory that will contains VCF (vCard) files
+                        merged. It MUST not exists already.
   FILES                 The vcf/vcard files that contains vCards.
 
 optional arguments:
