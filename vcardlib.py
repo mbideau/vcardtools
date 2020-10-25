@@ -957,9 +957,11 @@ def fix_and_convert_to_v3(file_path):
                                     logging.debug("\tconverted 'QUOTED-PRINTABLE' to 'ENCODING=QUOTED-PRINTABLE'")
                                 rest_list.append(field)
 
-                        # add PHOTO 'VALUE=URI' when JPEG if required
-                        if 'JPEG' in type_list and not 'ENCODING=b' in rest_list \
-                        and not 'VALUE=URI' in rest_list:
+                        # add PHOTO 'VALUE=URI' when JPEG|PNG|GIF if required
+                        if ('JPEG' in type_list or 'PNG' in type_list or 'GIF' in type_list) and \
+                                not 'ENCODING=b' in rest_list \
+                                and not 'VALUE=URI' in rest_list:
+                            # TODO check if is actually an URI (starting by '\w\+://' ?)
                             logging.debug("\tadded PHOTO 'VALUE=URI'")
                             rest_list.append('VALUE=URI')
 
