@@ -104,6 +104,8 @@ optional arguments:
   --no-remove-name-in-email
                         Do not removes name in email, i.e.: keep email like
                         the following untouched: "John Doe" <john@doe.com>
+  --do-not-force-escape-comas
+                        Disable automatically escaping comas.
   -l {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         the logging level in (DEBUG,INFO,WARNING,ERROR),
                         default is: INFO
