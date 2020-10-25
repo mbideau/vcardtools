@@ -22,7 +22,7 @@ def init_parser():
     )
     parser.add_argument( \
         'dest_dir', metavar='DESTDIR', \
-        help='The directory that will contains VCF (vCard) files merged.' \
+        help='The directory that will contains VCF (vCard) files merged. It MUST not exists already.' \
     )
     parser.add_argument( \
         'files', metavar='FILES', nargs='+', \
