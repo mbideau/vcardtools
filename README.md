@@ -28,18 +28,21 @@ git clone https://github.com/mbideau/vcardtools.git vcardtools
 
 Install packages requirements:
 ```
-apt install --no-install-recommends python3-pip
+apt install --no-install-recommends python3-pip python3-venv python3-setuptools
 ```
 
-Create a python virtual environment :
+Create a python virtual environment and activate it:
 ```
 python3 -m venv vcardtools
+cd vcardtools
+. bin/activate
 ```
 
 Install required python dependencies :
 ```
-pip install vobject
-pip install fuzzywuzzy
+pip3 install wheel
+pip3 install vobject
+pip3 install fuzzywuzzy
 ```
 
 ## Usage
