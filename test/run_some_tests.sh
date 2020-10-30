@@ -54,10 +54,6 @@ find "$cases_dir" -maxdepth 1 -type d -not -path "$cases_dir" | while read -r ca
     # shellcheck disable=SC2086
     if ! "$python_bin" "$vcardtools_py" --log-level WARNING $options "$tmp_dir" "$sources_dir"/* 2>"$tmp_err"; then
         failed=true
-        if [ "$DEBUG" = 'true' ]; then
-            echo "[DEBUG] failed with error:" >&2
-            sed 's/^/[DEBUG] /' "$tmp_err" >&2
-        fi
     fi
 
     expectations_matched=true
@@ -73,6 +69,11 @@ find "$cases_dir" -maxdepth 1 -type d -not -path "$cases_dir" | while read -r ca
             if [ "$DEBUG" = 'true' ]; then
                 diff --color=always "$case_exp" "$tmp_err" | sed 's/^/[DEBUG] /' >&2
             fi
+        fi
+    elif [ "$failed" = 'true' ]; then
+        echo "$case_name: FAIL (failed but should have succeeded)"
+        if [ "$DEBUG" = 'true' ]; then
+            sed 's/^/[DEBUG] /' "$tmp_err" >&2
         fi
     else
         IFS="
@@ -101,5 +102,6 @@ find "$cases_dir" -maxdepth 1 -type d -not -path "$cases_dir" | while read -r ca
         echo "$case_name: OK"
     fi
 
+    #echo "$tmp_dir" "$tmp_err"
     rm -fr "$tmp_dir" "$tmp_err"
 done
