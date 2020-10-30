@@ -55,7 +55,9 @@ def init_parser():
     parser.add_argument( \
         '-a', '--match-attributes', dest='match_attributes', action='append', \
         default=vcardlib.OPTION_MATCH_ATTRIBUTES, \
-        help="Use those attributes to match vCards. Specials attributes: 'names' is an alias for 'fn'+'n' and 'mobiles' for 'tel'+filter by phone number. Default is: %s." % vcardlib.OPTION_MATCH_ATTRIBUTES \
+        help="Use those attributes to match vCards. Two vCards matches when at least one of those attributes match. " \
+             "Specials attributes: 'names' is an alias for 'fn'+'n' and 'mobiles' for 'tel'+filter by phone number. " \
+             "Default is: %s. Use the argument multiple times to specify multiple values." % vcardlib.OPTION_MATCH_ATTRIBUTES \
     )
     parser.add_argument( \
         '-t', '--match-ratio', dest='match_ratio', type=int, default=100, \

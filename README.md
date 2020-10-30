@@ -80,9 +80,12 @@ optional arguments:
   -f, --french-tweaks   Enable french tweaks (phone number '+33' converted to
                         '0', handling of the name particule ' De ').
   -a MATCH_ATTRIBUTES, --match-attributes MATCH_ATTRIBUTES
-                        Use those attributes to match vCards. Specials
-                        attributes: 'names' is an alias for 'fn'+'n' and
-                        'mobiles' for 'tel'+filter by phone number
+                        Use those attributes to match vCards. Two vCards
+                        matches when at least one of those attributes match.
+                        Specials attributes: 'names' is an alias for 'fn'+'n'
+                        and 'mobiles' for 'tel'+filter by phone number.
+                        Default is: ['names', 'tel_!work', 'email']. Use the
+                        argument multiple times to specify multiple values.
   -t MATCH_RATIO, --match-ratio MATCH_RATIO
                         The ratio score to match the names (see fuzzywuzzy
                         documentation). Default is: 100 (safe).
@@ -131,3 +134,25 @@ To combine multiple vCard/VCF file into one, just do :
 cat *.vcard >> all.vcf
 ```
 
+## Examples
+
+### Matching
+
+#### Option `--no-match-approx`
+
+If you do not specify that option, but you specify `--merge` or `--group`, a fuzzy search/match will always occure on name attributes (fn, n).
+
+So if you only want to match using a single attribute _email_ and not any name attribute: use the following options :
+```
+python3 vcardtools.py --no-match-approx --merge --match-attributes email ...
+```
+
+#### Option `--match-attributes`
+
+That option allow to specify which attributes will be used to consider that two (or more) vCards shoud be grouped/merged.
+If one attribute matches, that's it, the vCards will be grouped/merged.
+
+So, if you want that vCards that have same email, and same organisation to be grouped/merged, use the following options :
+```
+python3 vcardtools.py --no-match-approx --merge --match-attributes email --match-attributes org ...
+```
