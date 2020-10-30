@@ -230,9 +230,10 @@ def main():
                     raise RuntimeError("Only one vcard in group '" + g_name + "' (should not happen)")
 
             # create vCard files not grouped in dest dir root
-            logging.info("Creating '%d' not grouped vCard files (in root dir) ...", len(vcards_not_grouped))
-            for key in vcards_not_grouped:
-                write_vcard_to_file(vcards[key], args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
+            if vcards_not_grouped:
+                logging.info("Creating '%d' not grouped vCard files (in root dir) ...", len(vcards_not_grouped))
+                for key in vcards_not_grouped:
+                    write_vcard_to_file(vcards[key], args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
 
         # no grouping
         elif vcards:
