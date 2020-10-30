@@ -9,11 +9,11 @@ You want to split multiple vCard/VCF files (address books) into individual vCard
 
 ### Grouping
 
-Identical to splitting, but it will group matching vCards (duplicates) into a directory with the most relevant name (the longuest name found).
+Identical to splitting, but it will group matching vCards (duplicates) into a directory with the most relevant name (the longest name found).
 
 ### Merging/Deduplicating
 
-Identical to grouping, but instead of grouping matching vCards (duplicates) into a directory it will merge them into one unique vCard file with the most relevant name (the longuest name found).
+Identical to grouping, but instead of grouping matching vCards (duplicates) into a directory it will merge them into one unique vCard file with the most relevant name (the longest name found).
 
 
 ## Installation
@@ -122,12 +122,12 @@ It uses logging as output, so adjust verbosity by adjusting the log level.
 
 It was made and tested on Linux without any knowledge of Windows environment, so it may or may not work on Windows.
 
-It was not unit-tested, but was extensively tested with mutliple real cases of all sort of different vCard/VCF files (hences the "fix" ability).
+It was not unit-tested, but was extensively tested with multiple real cases of all sort of different vCard/VCF files (hence the "fix" ability).
 
 
 ## Tips
 
-If you already have multiple individual vCard/VCF file that you want to group/merge, just re-combine them together before runing the tool. They will be re-splitted and grouped/merged.
+If you already have multiple individual vCard/VCF file that you want to group/merge, just re-combine them together before running the tool. They will be re-splitted and grouped/merged.
 
 To combine multiple vCard/VCF file into one, just do :
 ```
