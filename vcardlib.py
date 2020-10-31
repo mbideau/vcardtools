@@ -1229,10 +1229,13 @@ def group_keys(mappings, key1, key2, group1, group2):
 
         # first match (no existing group for both vcards)
         if not group1 and not group2:
+
             # create a group
             new_group_key = select_most_relevant_name([key1, key2])
             if new_group_key in mappings['groups']: # should not happen
                 raise RuntimeError("Failed to group keys: a group already exists with name '" + new_group_key + "'")
+
+            # make the vcards belonging to that group
             mappings['groups'][new_group_key] = [key1, key2]
             selected_group = new_group_key
             logging.debug("\t\t\tcreated new group '%s' with %s", selected_group, mappings['groups'][selected_group])
@@ -1243,7 +1246,7 @@ def group_keys(mappings, key1, key2, group1, group2):
             exiting_group = group1 if group1 else group2
             vcard_to_add = key2 if group1 else key1
 
-            # added vard to existing group
+            # add vard to existing group
             logging.debug("\t\t\tgroup '%s' before: %s", exiting_group, mappings['groups'][exiting_group])
             logging.debug("\t\t\tadded vcard '%s' to group '%s'", vcard_to_add, exiting_group)
             mappings['groups'][exiting_group].append(vcard_to_add)
@@ -1262,9 +1265,11 @@ def group_keys(mappings, key1, key2, group1, group2):
 
         # need to merge the two groups, if not already in the same group
         elif group1 != group2:
+
             # select the destination group key1
             dest_group_key = select_most_relevant_name([group1, group2])
             other_group_key = group1 if dest_group_key != group1 else group2
+
             # merge/move the other group into the selected one
             logging.debug("\t\t\told group: %s", mappings['groups'][other_group_key])
             for k in mappings['groups'][other_group_key]:
@@ -1290,12 +1295,17 @@ def get_vcards_groups(vcards):
     if not isinstance(vcards, dict):
         raise TypeError("parameter 'vcards' must be a dict (type: '" + str(type(vcards)) + "')")
 
+    # After having analysed all the vcards, this structure will contains 3 related dicts.
+    #  - groups      : lists of vcards that matches together grouped by a selected group key
+    #  - vcard_group : for each vcard, the group key to which they belongs to
+    #  - attributes  : for each attributes values, a list of vcards having that value
     mappings = {\
          'groups': {} \
         ,'vcard_group': {} \
         ,'attributes': {}
     }
 
+    # analysing all the vcards and filling the mapping/grouping dicts
     number_of_vcards = len(vcards)
     logging.info("Grouping '%d' vCards (safely) ...", number_of_vcards)
     logging.info("Using following attributes: %s", ', '.join(OPTION_MATCH_ATTRIBUTES))
@@ -1355,7 +1365,7 @@ def get_vcards_groups(vcards):
                     #else:
                         #raise RuntimeError("Failed to map attribute '" + a_key + "' with value '" + str(a_value) + "' for key '" + key + "' : already exist")
 
-    # fuzzy search names
+    # fuzzy search names : grouping vcards by approximate name
     if not OPTION_NO_MATCH_APPROX:
         logging.info("Grouping vcards using fuzzy search on names ...")
         number_of_names = len(mappings['attributes']['names'])
@@ -1368,20 +1378,25 @@ def get_vcards_groups(vcards):
         length_of_names_count = str(len(str(number_of_names)))
         names_to_compare_with = mappings['attributes']['names'].copy()
         logging.info("Comparing '%d' names (%d comparisons to make, takes a few minutes)", number_of_names, number_of_comparisons)
+
         # for every name
         for name1, keys1 in mappings['attributes']['names'].items():
+
             # prevent the name from being processed again
             del names_to_compare_with[name1]
 
             # search for other name matching
             for name2, keys2 in names_to_compare_with.items():
+
                 # if match
                 if match_approx(name1, name2):
+
                     # getting keys and groups
                     key1 = keys1[0]
                     key2 = keys2[0] if not key1 in keys2 else key1
                     group1 = mappings['vcard_group'][key1] if key1 in mappings['vcard_group'] else None
                     group2 = mappings['vcard_group'][key2] if key2 in mappings['vcard_group'] else None
+
                     # grouping them
                     group_keys(mappings, key1, key2, group1, group2)
 
@@ -1403,4 +1418,3 @@ def get_vcards_groups(vcards):
     #vcards_not_grouped = list(filter(lambda k: k in mappings['vcard_group'], vcards.keys()))
 
     return (mappings['groups'], vcards_not_grouped)
-
