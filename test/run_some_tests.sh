@@ -71,6 +71,7 @@ find "$cases_dir" -maxdepth 1 -type d -not -path "$cases_dir" | while read -r ca
             fi
         fi
     elif [ "$failed" = 'true' ]; then
+        expectations_matched=false
         echo "$case_name: FAIL (failed but should have succeeded)"
         if [ "$DEBUG" = 'true' ]; then
             sed 's/^/[DEBUG] /' "$tmp_err" >&2
