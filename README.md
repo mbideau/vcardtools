@@ -156,3 +156,23 @@ So, if you want that vCards that have same email, and same organisation to be gr
 ```
 python3 vcardtools.py --no-match-approx --merge --match-attributes email --match-attributes org ...
 ```
+
+## Testing
+
+A very basic mechanism of functional testing was implemented.
+To run the tests, just use :
+```
+test/run_some_tests.sh
+```
+Or to get more info :
+
+```
+DEBUG=true test/run_some_tests.sh
+```
+
+This script will do a run and compare process for every directory in the `test/cases` folder.  
+It runs the _vcardtools.py_ with the sources files contained in the directory `src` of the current test case,
+and output the result to a temporary directory.  
+Then it compares each files in the `expected` directory of the current test case, with the files in the resulting folder.  
+If files differs, the test fails.  
+If the _vcardtools.py_ is supposed to fail/error, a single file name `FAILURE` should be put into the `expected` directory, containing the error message (output of the command to _stderr_).
