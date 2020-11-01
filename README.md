@@ -1,5 +1,5 @@
 # vcardtools
-Automatically fix, split, normalize, group and merge/deduplicate vCard and VCF files (even large ones).
+Automatically fix, convert, split, normalize, group, merge, deduplicate vCard and VCF files (even large ones).
 
 ## Use case
 

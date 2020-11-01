@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""Command line tool to fix / convert / split / normalize / group / merge / deduplicate
+"""Command line tool to fix, convert, split, normalize, group, merge, deduplicate
 vCard and VCF files from version 2.1 to 3.0 (even large ones)."""
 
 import argparse
