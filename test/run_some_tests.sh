@@ -9,8 +9,23 @@ IFS_BAK="$IFS"
 test_dir="$(dirname "$(realpath "$0")")"
 cases_dir="$test_dir"/cases
 project_dir="$(dirname "$test_dir")"
-python_bin="$project_dir"/bin/python3
 vcardtools_py="$project_dir"/vcardtools.py
+
+if [ "$VIRTUAL_ENV" != '' ]; then
+    if [ -x "$VIRTUAL_ENV"/bin/python3 ]; then
+        python_bin="$VIRTUAL_ENV"/bin/python3
+    else
+        echo "Error: failed to find the python3 binary path ('$VIRTUAL_ENV/bin/python3' doesn't exist)." >&2
+        exit 1
+    fi
+else
+    if [ -x "$project_dir"/bin/python3 ]; then
+        python_bin="$project_dir"/bin/python3
+    else
+        echo "Error: failed to find the python3 binary path (no VIRTUAL_ENV var, nor '$project_dir/bin/python3' exists)." >&2
+        exit 1
+    fi
+fi
 
 if [ ! -f "$vcardtools_py" ]; then
     echo "Error: failed to find vcardtools python script '$vcardtools_py'" >&2
