@@ -50,7 +50,7 @@ REGEX_WITHOUT_EXTENSION = re.compile('(.+)\\.[a-zA-Z]+$')
 REGEX_NAME_IN_EMAIL = re.compile('^ *"(?P<name>[^"]+)" *<[^>]+> *$')
 REGEX_EMAIL_WITH_NAME = re.compile('^ *"[^"]+" *<(?P<email>[^>]+)> *$')
 REGEX_INVALID_MAIL = re.compile('^nobody[a-z0-9]*@nowhere.invalid$')
-REGEX_ONY_NON_ALPHANUM = re.compile('^[ 	]*[^\w]*[ 	]*$')
+REGEX_ONY_NON_ALPHANUM = re.compile('^[ 	]*[^\\w]*[ 	]*$')
 
 # global options that can be changed by invoking the command line
 OPTION_MATCH_ATTRIBUTES = ['names', 'tel_!work', 'email']
