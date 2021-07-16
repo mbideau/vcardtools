@@ -848,6 +848,17 @@ def get_vcards_from_files(files, \
             logging.error(err)
             raise
 
+        # any other exception
+        except Exception as err:
+            logging.error(
+                "An exception occured when processing vCard [%d] of file '%s'", count, f_path)
+            logging.error(err)
+            logging.error(
+                    "Maybe the file is invalid ? "
+                    "Please ensure it is not empty nor contains weird data "
+                    "and if needed exclude it from the batch and re-run it.")
+            raise
+
     return vcards
 
 
