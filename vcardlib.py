@@ -1471,7 +1471,11 @@ def get_vcards_groups(vcards):  # pylint: disable=too-many-statements,too-many-b
                         #   "'" + str(a_value) + "' for key '" + key + "' : already exist")
 
     # fuzzy search names : grouping vcards by approximate name
-    if not OPTION_NO_MATCH_APPROX:
+    if not OPTION_NO_MATCH_APPROX and 'names' not in OPTION_MATCH_ATTRIBUTES:
+        logging.warning(
+            "Skipping fuzzy matching on names, sinces 'names' is not a specified match attribute "
+            "(match attributes: %s)", ', '.join(OPTION_MATCH_ATTRIBUTES))
+    elif not OPTION_NO_MATCH_APPROX:
         logging.info("Grouping vcards using fuzzy search on names ...")
         number_of_names = len(mappings['attributes']['names'])
         number_of_comparisons = number_of_names * (number_of_names + 1) / 2
