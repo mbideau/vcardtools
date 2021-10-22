@@ -28,6 +28,15 @@ with warnings.catch_warnings():
     # @see: https://github.com/seatgeek/fuzzywuzzy
     from fuzzywuzzy.fuzz import token_sort_ratio
 
+# try importing the phonenumbers lib
+USE_PHONENUMBERS = None
+try:
+    import phonenumbers
+    USE_PHONENUMBERS = True
+except ImportError:
+    USE_PHONENUMBERS = False
+
+
 # when building a name from an email,
 # if the email left part (of '@') startswith one of the following
 # then add the domain name as a prefix for the name
@@ -60,11 +69,18 @@ OPTION_MATCH_APPROX_STARTSWITH = False
 OPTION_MATCH_APPROX_MIN_LENGTH = 5
 OPTION_MATCH_APPROX_MAX_DISTANCE = range(-3, 3)
 OPTION_MATCH_APPROX_RATIO = 100
+
+OPTION_NO_MATCH_PHONE = False
+OPTION_NO_PHONE_NORMALIZATION = False
+OPTION_PHONE_COUNTRY_ABBR = 'US'
+OPTION_PHONE_INVALID_WARN = True
+
 OPTION_UPDATE_GROUP_KEY = True
 OPTION_FRENCH_TWEAKS = False
 OPTION_DOT_NOT_FORCE_ESCAPE_COMAS = False
 
 SINGLE_INSTANCE_PROPERTIES = {'prodid', 'rev', 'uid'}
+
 
 def add_attributes(attributes, attr_to_add):  # pylint: disable=too-many-branches
     """
@@ -648,8 +664,7 @@ def normalize(vcard, selected_name, \
     - moving name's content inside parenth or braces into the note attribute (if enabled by option)
     - removing thunderbird invalid email form emails
     - removing name in email (if not disabled by option)
-    - removing space in tels numbers
-    - replacing '+33' by '0' in tels numbers (if french tweaks are enabled)
+    - normalize phone numbers (if not disabled by option)
 
     Arguments:
     vcard         -- the vcard
@@ -744,11 +759,35 @@ def normalize(vcard, selected_name, \
     # normalize tel
     if hasattr(vcard, 'tel') and vcard.tel_list:
         for tel in vcard.tel_list:
-            tel.value = tel.value.strip().replace(' ', '')
-            if OPTION_FRENCH_TWEAKS:
-                # re-localize
-                if tel.value.startswith('+33'):
-                    tel.value = tel.value.replace('+33', '0')
+            phon = None
+            if USE_PHONENUMBERS and not OPTION_NO_PHONE_NORMALIZATION:
+                is_international = False
+                try:
+                    phon = phonenumbers.parse(tel.value.strip(), None)
+                    is_international = True
+                except phonenumbers.phonenumberutil.NumberParseException as exc:
+                    logging.debug("Not an international phone number '%s'", tel)
+                if not phon:
+                    try:
+                        phon = phonenumbers.parse(tel.value.strip(), OPTION_PHONE_COUNTRY_ABBR)
+                    except phonenumbers.phonenumberutil.NumberParseException as exc:
+                        logging.error("Error while parsing phone number '%s': %s",
+                                      tel, exc)
+                if phon:
+                    if not phonenumbers.is_valid_number(phon) and OPTION_PHONE_INVALID_WARN:
+                        logging.warning("Invalid phone number '%s'", tel)
+                        phon = None
+                    else:
+                        phon_fmt = (phonenumbers.PhoneNumberFormat.INTERNATIONAL
+                                    if is_international else
+                                    phonenumbers.PhoneNumberFormat.NATIONAL)
+                        tel.value = phonenumbers.format_number(phon, phon_fmt).replace(' ', '')
+            if not phon:
+                tel.value = tel.value.strip().replace(' ', '')
+                if OPTION_FRENCH_TWEAKS:
+                    # re-localize
+                    if tel.value.startswith('+33'):
+                        tel.value = tel.value.replace('+33', '0')
 
     # TODO: strip all values
 
@@ -862,6 +901,7 @@ def get_vcards_from_files(files, \
     return vcards
 
 
+# TODO remove this dead code, or use it in the main script
 def deduplicate(vcard):
     """ Remove duplicated fields and merge their parameters """
 
@@ -1093,6 +1133,7 @@ def fix_and_convert_to_v3(file_path):  # pylint: disable=too-many-statements,too
     return ''.join(lines)
 
 
+# TODO find a better/generic way to detect mobiles (eventually by asking the user)
 def is_a_mobile_phone(number):
     """ Return True if the number is a number for a mobile phone """
 
@@ -1290,6 +1331,51 @@ def match_approx(reference, compared):  # pylint: disable=too-many-branches,too-
 
     # no match
     return False
+
+
+def match_phone(reference, compared):  # pylint: disable=too-many-branches
+    """Return True if phone numbers match, else False."""
+    matches = reference == compared
+    if matches:
+        return True
+
+    if USE_PHONENUMBERS:
+        phone_ref = None
+        try:
+            phone_ref = phonenumbers.parse(reference, None)
+        except phonenumbers.phonenumberutil.NumberParseException as exc:
+            pass
+        if not phone_ref:
+            try:
+                phone_ref = phonenumbers.parse(reference, OPTION_PHONE_COUNTRY_ABBR)
+            except phonenumbers.phonenumberutil.NumberParseException as exc:
+                logging.error("Error while parsing phone number '%s': %s",
+                              reference, exc)
+        if phone_ref:
+            if not phonenumbers.is_valid_number(phone_ref):
+                phone_ref = None
+
+        phone_cmp = None
+        try:
+            phone_cmp = phonenumbers.parse(compared, None)
+        except phonenumbers.phonenumberutil.NumberParseException as exc:
+            pass
+        if not phone_cmp:
+            try:
+                phone_cmp = phonenumbers.parse(compared, OPTION_PHONE_COUNTRY_ABBR)
+            except phonenumbers.phonenumberutil.NumberParseException as exc:
+                logging.error("Error while parsing phone number '%s': %s",
+                              compared, exc)
+
+                if phone_ref and phone_cmp:
+                    fmt = phonenumbers.PhoneNumberFormat.E164
+                    if phonenumbers.format_number(phone_ref, fmt) == \
+                            phonenumbers.format_number(phone_cmp, fmt):
+                        matches = True
+    # TODO in case we are not using the phonenumbers lib, implement a fallback way to
+    #      remove international (+) prefix, by specifying a length after the plus sign
+
+    return matches
 
 
 def group_keys(mappings, key1, key2, group1, group2):  # pylint: disable=too-many-branches
@@ -1533,6 +1619,76 @@ def get_vcards_groups(vcards):  # pylint: disable=too-many-statements,too-many-b
                              "so far").format(percentage, names_count))
 
             names_count += 1
+
+    # phone search : grouping vcards by hone numbers using national part (without prefix)
+    has_a_tel_in_match_attr = False
+    if not OPTION_NO_MATCH_PHONE:
+        for attr in OPTION_MATCH_ATTRIBUTES:
+            if attr == 'mobiles' or attr.startswith('tel_'):
+                has_a_tel_in_match_attr = True
+                break
+    if not OPTION_NO_MATCH_PHONE and not has_a_tel_in_match_attr:
+        logging.warning(
+            "Skipping matching on phone numbers, sinces no specified match attribute is a phone "
+            "number (match attributes: %s)", ', '.join(OPTION_MATCH_ATTRIBUTES))
+    elif not OPTION_NO_MATCH_PHONE:
+        logging.info("Grouping vcards using search on phone numbers ...")
+        number_of_phones = len(mappings['attributes']['tel'])
+        number_of_comparisons = number_of_phones * (number_of_phones + 1) / 2
+        names_count = 0
+        comparisons_count = 0
+        percentage = 0
+        previous_percentage = 0
+        display_every_percentage = 20
+        if number_of_phones > 100000:
+            display_every_percentage = 1
+        elif number_of_phones > 10000:
+            display_every_percentage = 2
+        elif number_of_phones > 1000:
+            display_every_percentage = 5
+        elif number_of_phones > 100:
+            display_every_percentage = 10
+        length_of_phones_count = str(len(str(number_of_phones)))
+        phones_to_compare_with = mappings['attributes']['tel'].copy()
+        logging.info("Comparing '%d' phones (%d comparisons to make, takes a few minutes)",
+                     number_of_phones, number_of_comparisons)
+
+        # for every phone
+        for phone1, keys1 in mappings['attributes']['tel'].items():
+
+            # prevent the phone from being processed again
+            del phones_to_compare_with[phone1]
+
+            # search for other phone matching
+            for phone2, keys2 in phones_to_compare_with.items():
+
+                # if match
+                if match_phone(phone1, phone2):
+
+                    # getting keys and groups
+                    key1 = keys1[0]
+                    key2 = keys2[0] if not key1 in keys2 else key1
+                    group1 = None
+                    group2 = None
+                    if key1 in mappings['vcard_group']:
+                        group1 = mappings['vcard_group'][key1]
+                    if key2 in mappings['vcard_group']:
+                        group2 = mappings['vcard_group'][key2]
+
+                    # grouping them
+                    group_keys(mappings, key1, key2, group1, group2)
+
+                # display progress
+                comparisons_count += 1
+                percentage = int(comparisons_count * 100 / number_of_comparisons)
+                if percentage != previous_percentage:
+                    previous_percentage = percentage
+                    if percentage == 100 or percentage % display_every_percentage == 0:
+                        logging.info(
+                            ("\t{:>3d}% done\t{:>" + length_of_phones_count + "d} phones, "
+                             "so far").format(percentage, phones_count))
+
+            phones_count += 1
 
     # get the not grouped vcards
     vcards_not_grouped = []

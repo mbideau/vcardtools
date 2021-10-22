@@ -109,6 +109,23 @@ def init_parser():
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
         help="the logging level in (DEBUG,INFO,WARNING,ERROR), default is: INFO"
     )
+    parser.add_argument(
+        '--no-match-phone', dest='no_match_phone', action='store_true',
+        help="Disable matching by phone numbers."
+    )
+    parser.add_argument(
+        '--no-phone-normaliaztion', dest='no_phone_normalization', action='store_true',
+        help="Disable phone numbers normalization."
+    )
+    parser.add_argument(
+        '--phone-country-abbrv', dest='phone_country_abbrv',
+        default=vcardlib.OPTION_PHONE_COUNTRY_ABBR,
+        help="Default phone country localization (when not an international number)."
+    )
+    parser.add_argument(
+        '--no-phone-invalid-warn', dest='no_phone_invalid_warn', action='store_true',
+        help="Disable invalid phone numbers warnings."
+    )
     return parser
 
 
@@ -161,6 +178,12 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
         # match ratio
         if args.match_ratio and isinstance(args.match_ratio, int):
             vcardlib.OPTION_MATCH_APPROX_RATIO = args.match_ratio
+
+        # phone numbers
+        vcardlib.OPTION_NO_MATCH_PHONE = args.no_match_phone
+        vcardlib.OPTION_NO_PHONE_NORMALIZATION = args.no_phone_normalization
+        vcardlib.OPTION_PHONE_COUNTRY_ABBR = args.phone_country_abbrv
+        vcardlib.OPTION_PHONE_INVALID_WARN = not args.no_phone_invalid_warn
 
         # french tweaks
         vcardlib.OPTION_FRENCH_TWEAKS = args.french_tweaks
