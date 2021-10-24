@@ -32,8 +32,11 @@ with warnings.catch_warnings():
 USE_PHONENUMBERS = None
 try:
     import phonenumbers
+    from phonenumbers.phonenumberutil import region_code_for_country_code
     USE_PHONENUMBERS = True
 except ImportError:
+    logging.warning("Failed to import the 'phonenumbers' libary. "
+                    "Phone numbers will not be normalized.")
     USE_PHONENUMBERS = False
 
 
@@ -685,6 +688,8 @@ def normalize(vcard, selected_name, \
         raise TypeError("parameter 'selected_name' must be a string "
                         "(type: '" + str(type(selected_name)) + "')")
 
+    logging.debug("\tnormalizing vcard '%s'", selected_name)
+
     # remove vCard version
     if hasattr(vcard, 'version'):
         del vcard.version
@@ -759,35 +764,52 @@ def normalize(vcard, selected_name, \
     # normalize tel
     if hasattr(vcard, 'tel') and vcard.tel_list:
         for tel in vcard.tel_list:
+            logging.debug("\t\tnormalizing phone number '%s' ...", tel.value)
             phon = None
             if USE_PHONENUMBERS and not OPTION_NO_PHONE_NORMALIZATION:
+                logging.debug("\t\t\tusing phonenumbers lib")
                 is_international = False
                 try:
                     phon = phonenumbers.parse(tel.value.strip(), None)
                     is_international = True
+                    logging.debug("\t\t\tnumber parsed (international): %s", phon)
                 except phonenumbers.phonenumberutil.NumberParseException as exc:
-                    logging.debug("Not an international phone number '%s'", tel)
+                    pass
                 if not phon:
                     try:
                         phon = phonenumbers.parse(tel.value.strip(), OPTION_PHONE_COUNTRY_ABBR)
+                        logging.debug("\t\t\tnumber parsed (national): %s", phon)
                     except phonenumbers.phonenumberutil.NumberParseException as exc:
                         logging.error("Error while parsing phone number '%s': %s",
-                                      tel, exc)
+                                      tel.value, exc)
                 if phon:
                     if not phonenumbers.is_valid_number(phon) and OPTION_PHONE_INVALID_WARN:
-                        logging.warning("Invalid phone number '%s'", tel)
+                        logging.warning("Invalid phone number '%s'", tel.value)
                         phon = None
                     else:
                         phon_fmt = (phonenumbers.PhoneNumberFormat.INTERNATIONAL
                                     if is_international else
                                     phonenumbers.PhoneNumberFormat.NATIONAL)
+                        if is_international:
+                            region_code = region_code_for_country_code(phon.country_code)
+                            logging.debug("\t\t\tphone number region code: %s", region_code)
+                            if region_code and region_code == OPTION_PHONE_COUNTRY_ABBR:
+                                logging.debug("\t\t\tregion code matches the defautl one")
+                                phon_fmt = phonenumbers.PhoneNumberFormat.NATIONAL
+                        logging.debug(
+                            "\t\t\tformatting number to: %s",
+                            'NATIONAL' if phon_fmt == phonenumbers.PhoneNumberFormat.NATIONAL \
+                            else 'INTERNATIONAL')
                         tel.value = phonenumbers.format_number(phon, phon_fmt).replace(' ', '')
             if not phon:
+                logging.debug("\t\t\tnot using phonenumbers lib")
                 tel.value = tel.value.strip().replace(' ', '')
                 if OPTION_FRENCH_TWEAKS:
+                    logging.debug("\t\t\tusing french tweaks")
                     # re-localize
                     if tel.value.startswith('+33'):
                         tel.value = tel.value.replace('+33', '0')
+            logging.debug("\t\t\tnumber normalized: %s", tel.value)
 
     # TODO: strip all values
 
@@ -1335,24 +1357,31 @@ def match_approx(reference, compared):  # pylint: disable=too-many-branches,too-
 
 def match_phone(reference, compared):  # pylint: disable=too-many-branches
     """Return True if phone numbers match, else False."""
+
+    logging.debug("\tComparing '%s' to '%s' ...", reference, compared)
+
     matches = reference == compared
     if matches:
         return True
 
     if USE_PHONENUMBERS:
+        logging.debug("\t\tusing phonenumbers library")
         phone_ref = None
         try:
             phone_ref = phonenumbers.parse(reference, None)
         except phonenumbers.phonenumberutil.NumberParseException as exc:
             pass
+        logging.debug("\t\tphone_ref (international): %s", phone_ref)
         if not phone_ref:
             try:
                 phone_ref = phonenumbers.parse(reference, OPTION_PHONE_COUNTRY_ABBR)
             except phonenumbers.phonenumberutil.NumberParseException as exc:
                 logging.error("Error while parsing phone number '%s': %s",
                               reference, exc)
+            logging.debug("\t\tphone_ref (national): %s", phone_ref)
         if phone_ref:
             if not phonenumbers.is_valid_number(phone_ref):
+                logging.debug("\t\tphone_ref '%s' is not valid", phone_ref)
                 phone_ref = None
 
         phone_cmp = None
@@ -1360,18 +1389,28 @@ def match_phone(reference, compared):  # pylint: disable=too-many-branches
             phone_cmp = phonenumbers.parse(compared, None)
         except phonenumbers.phonenumberutil.NumberParseException as exc:
             pass
+        logging.debug("\t\tphone_cmp (international): %s", phone_cmp)
         if not phone_cmp:
             try:
                 phone_cmp = phonenumbers.parse(compared, OPTION_PHONE_COUNTRY_ABBR)
             except phonenumbers.phonenumberutil.NumberParseException as exc:
                 logging.error("Error while parsing phone number '%s': %s",
                               compared, exc)
+            logging.debug("\t\tphone_cmp (national): %s", phone_cmp)
+        if phone_cmp:
+            if not phonenumbers.is_valid_number(phone_cmp):
+                logging.debug("\t\tphone_cmp '%s' is not valid", phone_cmp)
+                phone_cmp = None
 
-                if phone_ref and phone_cmp:
-                    fmt = phonenumbers.PhoneNumberFormat.E164
-                    if phonenumbers.format_number(phone_ref, fmt) == \
-                            phonenumbers.format_number(phone_cmp, fmt):
-                        matches = True
+        if phone_ref is not None and phone_cmp is not None:
+            fmt = phonenumbers.PhoneNumberFormat.E164
+            phone_ref_fmt = phonenumbers.format_number(phone_ref, fmt)
+            phone_cmp_fmt = phonenumbers.format_number(phone_cmp, fmt)
+            logging.debug("\t\tmanaged to parse both numbers: %s == %s ? %s",
+                          phone_ref_fmt, phone_cmp_fmt, phone_ref_fmt == phone_cmp_fmt)
+            if phone_ref_fmt == phone_cmp_fmt:
+                matches = True
+
     # TODO in case we are not using the phonenumbers lib, implement a fallback way to
     #      remove international (+) prefix, by specifying a length after the plus sign
 
@@ -1635,7 +1674,7 @@ def get_vcards_groups(vcards):  # pylint: disable=too-many-statements,too-many-b
         logging.info("Grouping vcards using search on phone numbers ...")
         number_of_phones = len(mappings['attributes']['tel'])
         number_of_comparisons = number_of_phones * (number_of_phones + 1) / 2
-        names_count = 0
+        phones_count = 0
         comparisons_count = 0
         percentage = 0
         previous_percentage = 0
@@ -1664,6 +1703,7 @@ def get_vcards_groups(vcards):  # pylint: disable=too-many-statements,too-many-b
 
                 # if match
                 if match_phone(phone1, phone2):
+                    logging.debug("\t\tphone numbers '%s' and '%s' matches", phone1, phone2)
 
                     # getting keys and groups
                     key1 = keys1[0]
@@ -1677,6 +1717,10 @@ def get_vcards_groups(vcards):  # pylint: disable=too-many-statements,too-many-b
 
                     # grouping them
                     group_keys(mappings, key1, key2, group1, group2)
+
+                # no match
+                else:
+                    logging.debug("\t\tphone numbers '%s' and '%s' doesn't match", phone1, phone2)
 
                 # display progress
                 comparisons_count += 1
