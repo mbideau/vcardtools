@@ -45,19 +45,29 @@ pip3 install vobject
 pip3 install fuzzywuzzy
 ```
 
+Optional, recommanded (to get phone numbers normalization and matching), library :
+```
+pip3 install phonenumbers
+```
+
 ## Usage
 
-Run `python3 vcardtools.py`.
+Run `python3 vcardtools.py --help`.
 
 ```
 usage: vcardtools.py [-h] [-g] [-m] [-x] [-c] [-n] [-f] [-a MATCH_ATTRIBUTES]
-               [-t MATCH_RATIO] [-i MATCH_MIN_LENGTH] [-d MATCH_MAX_DISTANCE]
-               [-1] [-s] [--move-name-extra-info-to-note]
-               [--no-remove-name-in-email]
-               [-l {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
-               DESTDIR FILES [FILES ...]
+                     [-t MATCH_RATIO] [-i MATCH_MIN_LENGTH]
+                     [-d MATCH_MAX_DISTANCE] [-1] [-s]
+                     [--move-name-extra-info-to-note]
+                     [--no-remove-name-in-email] [--do-not-force-escape-comas]
+                     [-l {DEBUG,INFO,WARNING,ERROR,CRITICAL}]
+                     [--no-match-phone] [--no-phone-normalization]
+                     [--phone-country-abbrv PHONE_COUNTRY_ABBRV]
+                     [--no-phone-invalid-warn]
+                     DESTDIR FILES [FILES ...]
 
-Automatically fix, split, normalize, group and merge/deduplicate vCard and VCF files (even large ones).
+Automatically fix / convert / split / normalize / group / merge / deduplicate
+vCard and VCF files from version 2.1 to 3.0 (even large ones).
 
 positional arguments:
   DESTDIR               The directory that will contains VCF (vCard) files
@@ -112,11 +122,19 @@ optional arguments:
   -l {DEBUG,INFO,WARNING,ERROR,CRITICAL}, --log-level {DEBUG,INFO,WARNING,ERROR,CRITICAL}
                         the logging level in (DEBUG,INFO,WARNING,ERROR),
                         default is: INFO
+  --no-match-phone      Disable matching by phone numbers.
+  --no-phone-normalization
+                        Disable phone numbers normalization.
+  --phone-country-abbrv PHONE_COUNTRY_ABBRV
+                        Default phone country localization (when not an
+                        international number).
+  --no-phone-invalid-warn
+                        Disable invalid phone numbers warnings.
 ```
 
 ## Notes
 
-It outputs only vCard 3.0 format, but accept 2.1 and 3.0 vCard format (even mixed).
+It outputs only vCard 3.0 format (with DOS line breaks), but accept 2.1 and 3.0 vCard format (even mixed).
 
 It uses logging as output, so adjust verbosity by adjusting the log level.
 
@@ -136,7 +154,22 @@ cat *.vcard >> all.vcf
 
 ## Examples
 
-### Matching
+### Normalization of phone numbers
+
+#### Option `--phone-country-abbrv`
+
+In order for the normalization to function well, **you really should specify a country/region
+abbreviation code**.  
+Else it will default to '_US_' and **treat every non-international number as if it were a _US_
+national one**, and being invalid (not normalized) if it is not really a _US_ one.
+
+For example, for someone that mainly have contacts with phone number without international prefix
+coming from Bangladesh country/region (like 01910-500002), the option should be specified as:
+```
+python3 vcardtools.py ... --phone-country-abbrv BD ...
+```
+
+### Matching/grouping cards together
 
 #### Option `--no-match-approx`
 
