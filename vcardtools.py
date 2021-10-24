@@ -114,7 +114,7 @@ def init_parser():
         help="Disable matching by phone numbers."
     )
     parser.add_argument(
-        '--no-phone-normaliaztion', dest='no_phone_normalization', action='store_true',
+        '--no-phone-normalization', dest='no_phone_normalization', action='store_true',
         help="Disable phone numbers normalization."
     )
     parser.add_argument(
