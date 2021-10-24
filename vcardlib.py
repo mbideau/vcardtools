@@ -780,11 +780,12 @@ def normalize(vcard, selected_name, \
                         phon = phonenumbers.parse(tel.value.strip(), OPTION_PHONE_COUNTRY_ABBR)
                         logging.debug("\t\t\tnumber parsed (national): %s", phon)
                     except phonenumbers.phonenumberutil.NumberParseException as exc:
-                        logging.error("Error while parsing phone number '%s': %s",
-                                      tel.value, exc)
+                        logging.error("Error while parsing phone number '%s' for vcard '%s': %s",
+                                      tel.value, selected_name, exc)
                 if phon:
                     if not phonenumbers.is_valid_number(phon) and OPTION_PHONE_INVALID_WARN:
-                        logging.warning("Invalid phone number '%s'", tel.value)
+                        logging.warning("Invalid phone number '%s' for vcard '%s'",
+                                        tel.value, selected_name)
                         phon = None
                     else:
                         phon_fmt = (phonenumbers.PhoneNumberFormat.INTERNATIONAL
@@ -1369,16 +1370,16 @@ def match_phone(reference, compared):  # pylint: disable=too-many-branches
         phone_ref = None
         try:
             phone_ref = phonenumbers.parse(reference, None)
+            logging.debug("\t\tphone_ref (international): %s", phone_ref)
         except phonenumbers.phonenumberutil.NumberParseException as exc:
             pass
-        logging.debug("\t\tphone_ref (international): %s", phone_ref)
         if not phone_ref:
             try:
                 phone_ref = phonenumbers.parse(reference, OPTION_PHONE_COUNTRY_ABBR)
+                logging.debug("\t\tphone_ref (national): %s", phone_ref)
             except phonenumbers.phonenumberutil.NumberParseException as exc:
                 logging.error("Error while parsing phone number '%s': %s",
                               reference, exc)
-            logging.debug("\t\tphone_ref (national): %s", phone_ref)
         if phone_ref:
             if not phonenumbers.is_valid_number(phone_ref):
                 logging.debug("\t\tphone_ref '%s' is not valid", phone_ref)
@@ -1387,16 +1388,16 @@ def match_phone(reference, compared):  # pylint: disable=too-many-branches
         phone_cmp = None
         try:
             phone_cmp = phonenumbers.parse(compared, None)
+            logging.debug("\t\tphone_cmp (international): %s", phone_cmp)
         except phonenumbers.phonenumberutil.NumberParseException as exc:
             pass
-        logging.debug("\t\tphone_cmp (international): %s", phone_cmp)
         if not phone_cmp:
             try:
                 phone_cmp = phonenumbers.parse(compared, OPTION_PHONE_COUNTRY_ABBR)
+                logging.debug("\t\tphone_cmp (national): %s", phone_cmp)
             except phonenumbers.phonenumberutil.NumberParseException as exc:
                 logging.error("Error while parsing phone number '%s': %s",
                               compared, exc)
-            logging.debug("\t\tphone_cmp (national): %s", phone_cmp)
         if phone_cmp:
             if not phonenumbers.is_valid_number(phone_cmp):
                 logging.debug("\t\tphone_cmp '%s' is not valid", phone_cmp)
