@@ -159,7 +159,8 @@ cat *.vcard >> all.vcf
 #### Option `--phone-country-abbrv`
 
 In order for the normalization to function well, **you really should specify a country/region
-abbreviation code**.  
+abbreviation code**. See the
+[ISO 3166-1 alpha-2 table code list](https://en.wikipedia.org/wiki/ISO_3166-1_alpha-2).  
 Else it will default to '_US_' and **treat every non-international number as if it were a _US_
 national one**, and being invalid (not normalized) if it is not really a _US_ one.
 
