@@ -680,6 +680,11 @@ def normalize(vcard, selected_name, \
         del vcard.prodid
     vcard.add('prodid').value = 'https://github.com/mbideau/vcardtools'
 
+    # set REV
+    if hasattr(vcard, 'rev'):
+        del vcard.rev
+    vcard.add('rev').value = '20221009T110000+0200'
+
     # overwrite names with the selected one
     if not do_not_overwrite_names:
         # remove all name fields
