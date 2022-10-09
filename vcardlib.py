@@ -685,6 +685,14 @@ def normalize(vcard, selected_name, \
         del vcard.rev
     vcard.add('rev').value = '20221009T110000+0200'
 
+    # These will weirdly conflict when merging, and I just don't consider them relevant
+    if hasattr(vcard, 'x-calypso-name'):
+        delattr(vcard, 'x-calypso-name')
+    if hasattr(vcard, 'x-evolution-file-as'):
+        delattr(vcard, 'x-evolution-file-as')
+    if hasattr(vcard, 'x-mozilla-html'):
+        delattr(vcard, 'x-mozilla-html')
+
     # overwrite names with the selected one
     if not do_not_overwrite_names:
         # remove all name fields
