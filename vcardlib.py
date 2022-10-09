@@ -675,6 +675,11 @@ def normalize(vcard, selected_name, \
         del vcard.version
         logging.debug("\t\tremoved VERSION attribute")
 
+    # set PRODID
+    if hasattr(vcard, 'prodid'):
+        del vcard.prodid
+    vcard.add('prodid').value = 'https://github.com/mbideau/vcardtools'
+
     # overwrite names with the selected one
     if not do_not_overwrite_names:
         # remove all name fields
