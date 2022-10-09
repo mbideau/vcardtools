@@ -809,6 +809,8 @@ def get_vcards_from_files(files, \
                 normalize(vcard, selected_name, do_not_overwrite_names,
                           mv_name_parenth_braces_to_note, do_not_remove_name_in_email)
 
+                selected_name = f_name
+
                 # force the full parsing of the vcard to prevent further crash
                 try:
                     vcard.serialize()
