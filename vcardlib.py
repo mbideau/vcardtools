@@ -379,7 +379,9 @@ def select_most_relevant_name(names):
     longuest_length = 0
     pos = 0
     for name in names:
-        if not name:
+        if name == "":
+            continue
+        else:
             raise TypeError("parameter 'names[" + str(pos) + "]' is undefined")
         length = len_without_parenth_or_braces(name)
         # longuer
