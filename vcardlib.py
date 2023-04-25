@@ -529,7 +529,7 @@ def collect_vcard_names(vcard):  # pylint: disable=too-many-statements,too-many-
             for attr_n in getattr(vcard, name_key + '_list'):
                 value = close_parentheses_or_braces(str(attr_n.value).strip())
                 if not REGEX_ONY_NON_ALPHANUM.match(value):
-                    if '@' in value:
+                    if value.count('@') == 1:
                         name = build_name_from_email(value)
                         if not name in available_names:
                             available_names.append(name)
