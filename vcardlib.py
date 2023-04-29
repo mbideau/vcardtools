@@ -381,7 +381,7 @@ def select_most_relevant_name(names):
     for name in names:
         if name == "":
             continue
-        else:
+        if not name:
             raise TypeError("parameter 'names[" + str(pos) + "]' is undefined")
         length = len_without_parenth_or_braces(name)
         # longuer
