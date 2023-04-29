@@ -781,6 +781,7 @@ def get_vcards_from_files(files, \
     logging.info("Reading/parsing individual vCard files ...")
     vcards = {}
     file_names_max_length = max([len(basename(x)) for x in files])
+    selected_name = None
     logging.debug("file names max length: %d", file_names_max_length)
     for f_path in files:
         f_name = basename(f_path)
@@ -789,7 +790,7 @@ def get_vcards_from_files(files, \
         if not do_not_fix_and_convert:
             content = fix_and_convert_to_v3(f_path)
         else:
-            with open(f_path, 'rU') as vfile:
+            with open(f_path, 'r') as vfile:
                 content = vfile.read()
 
         try:
@@ -932,7 +933,7 @@ def fix_and_convert_to_v3(file_path):  # pylint: disable=too-many-statements,too
     last_line = None
     line_endings = None
     started_quoted_printable = False
-    with open(file_path, 'rU') as vfile:
+    with open(file_path, 'r') as vfile:
 
         # read line by line
         for line in vfile:  # pylint: disable=too-many-nested-blocks
