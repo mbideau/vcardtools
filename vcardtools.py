@@ -7,7 +7,7 @@ import argparse
 import logging
 from sys import stderr, exit as sysexit
 from os import makedirs
-from os.path import exists, isfile
+from os.path import exists, isfile, split as pathsplit
 import vcardlib
 from vcardlib import (
     get_vcards_from_files,
@@ -177,6 +177,10 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
             sysexit(2)
         # create DIR
         else:
+            # Make sure args.dest_dir has not ending '/' before adding a new '/' in other steps
+            dirname, subdir = pathsplit(args.dest_dir)
+            if (subdir == ''):
+                args.dest_dir = dirname
             makedirs(args.dest_dir)
             logging.info("Created directory '%s'", args.dest_dir)
 
