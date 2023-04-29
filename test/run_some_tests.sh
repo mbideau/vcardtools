@@ -95,7 +95,7 @@ find "$cases_dir" -maxdepth 1 -type d -not -path "$cases_dir" | while read -r ca
         IFS="
 "
         # shellcheck disable=SC2044
-        for case_exp in $(find "$expected_dir" -maxdepth 1 -type f -o -type l); do
+        for case_exp in $(find "$expected_dir" -maxdepth 1 \( -type f -o -type l \)); do
             IFS="$IFS_BAK"
             case_out="$tmp_dir/$(basename "$case_exp")"
             if [ "$DEBUG" = 'true' ]; then
