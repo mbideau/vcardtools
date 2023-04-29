@@ -242,7 +242,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
                         # save the remaining attributes to the merged vCard
                         vcard_merge = build_vcard(attributes)
                         # write to the file
-                        write_vcard_to_file(vcard_merge, d_path + '.vcard')
+                        write_vcard_to_file(vcard_merge, d_path)
 
                     # group
                     else:
@@ -252,7 +252,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
                             logging.debug("\t\t%s", key)
                             write_vcard_to_file(
                                 vcards[key],
-                                d_path + '/' + key.replace('/', '-') + '.vcard')
+                                d_path + '/' + key)
                 else: # should not happen
                     raise RuntimeError("Only one vcard in group '" + g_name + "' "
                                        "(should not happen)")
@@ -264,7 +264,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
                 for key in vcards_not_grouped:
                     write_vcard_to_file(
                         vcards[key],
-                        args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
+                        args.dest_dir + '/' + key)
 
         # no grouping
         elif vcards:
@@ -272,7 +272,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
             # create vCard files not grouped in dest dir root
             logging.info("Creating '%d' not grouped vCard files (in root dir) ...", len(vcards))
             for key, vcard in vcards.items():
-                write_vcard_to_file(vcard, args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
+                write_vcard_to_file(vcard, args.dest_dir + '/' + key.replace('/', '-'))
 
 
     # user CTRL-C

@@ -677,6 +677,24 @@ def normalize(vcard, selected_name, \
         del vcard.version
         logging.debug("\t\tremoved VERSION attribute")
 
+    # set PRODID
+    if hasattr(vcard, 'prodid'):
+        del vcard.prodid
+    vcard.add('prodid').value = 'https://github.com/mbideau/vcardtools'
+
+    # set REV
+    if hasattr(vcard, 'rev'):
+        del vcard.rev
+    vcard.add('rev').value = '20221009T110000+0200'
+
+    # These will weirdly conflict when merging, and I just don't consider them relevant
+    if hasattr(vcard, 'x-calypso-name'):
+        delattr(vcard, 'x-calypso-name')
+    if hasattr(vcard, 'x-evolution-file-as'):
+        delattr(vcard, 'x-evolution-file-as')
+    if hasattr(vcard, 'x-mozilla-html'):
+        delattr(vcard, 'x-mozilla-html')
+
     # overwrite names with the selected one
     if not do_not_overwrite_names:
         # remove all name fields
@@ -810,6 +828,8 @@ def get_vcards_from_files(files, \
                 # normalize the fields
                 normalize(vcard, selected_name, do_not_overwrite_names,
                           mv_name_parenth_braces_to_note, do_not_remove_name_in_email)
+
+                selected_name = f_name
 
                 # force the full parsing of the vcard to prevent further crash
                 try:
