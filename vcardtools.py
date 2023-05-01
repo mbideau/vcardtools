@@ -140,8 +140,8 @@ def sanitise_name(a_name: str) -> str:
         FROM_CHARACTERS = ' ' + FROM_CHARACTERS
     a_name = re.sub(r'[' + FROM_CHARACTERS + ']*', OPTION_REPLACE_INVALID_FILENAME_CHAR_BY, a_name)
 
-    # An optional extra would be to remove all duplicates of the underscore
-    return a_name
+    return re.sub(OPTION_REPLACE_INVALID_FILENAME_CHAR_BY + '+',
+                  OPTION_REPLACE_INVALID_FILENAME_CHAR_BY, a_name)
 
 def generate_vcard_filename(a_name: str = '', ext: str = '') -> str:
     """ Make a vcard filename, by first sanitising the filename
