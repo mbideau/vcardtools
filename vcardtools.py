@@ -122,7 +122,7 @@ def sanitise_name(a_name: str) -> str:
         and replacing them with something safe (in this case, an underscore)
     """
     NEW_REPLACEMENT_CHAR = '_'
-    FROM_CHARACTERS = ' .\\/"\'!@#?$%^&*|()[]{};:<>'
+    FROM_CHARACTERS = '.\\/"\'!@#?$%^&*|()[]{};:<>'
     for old_char in FROM_CHARACTERS:
         a_name = a_name.replace(old_char, NEW_REPLACEMENT_CHAR)
 
@@ -270,8 +270,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
                         # save the remaining attributes to the merged vCard
                         vcard_merge = build_vcard(attributes)
                         # write to the file
-                        write_vcard_to_file(vcard_merge, mk_vcard_fnm(d_path, the_vcard_ext))
-                        # write_vcard_to_file(vcard_merge, d_path + '.vcard')
+                        write_vcard_to_file(vcard_merge, d_path + the_vcard_ext)
 
                     # group
                     else:
