@@ -18,6 +18,7 @@ from vcardlib import (
     write_vcard_to_file)
 
 DEFAULT_VCARD_EXTENSION = '.vcard'
+OPTION_NO_SPACE_IN_FILENAME = False
 
 def init_parser():
     """Setup the CLI argument parser with the definition of arguments and options."""
@@ -110,6 +111,10 @@ def init_parser():
         help="Disable automatically escaping commas."
     )
     parser.add_argument(
+        '--no-space-in-filename', dest='no_space_in_filename', action='store_true',
+        help="Replace space in generated filename by an underscore."
+    )
+    parser.add_argument(
         '-l', '--log-level', dest='log_level', default='INFO',
         choices=['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'],
         help="the logging level in (DEBUG,INFO,WARNING,ERROR), default is: INFO"
@@ -123,6 +128,8 @@ def sanitise_name(a_name: str) -> str:
     """
     NEW_REPLACEMENT_CHAR = '_'
     FROM_CHARACTERS = '.\\/"\'!@#?$%^&*|()[]{};:<>'
+    if OPTION_NO_SPACE_IN_FILENAME:
+        FROM_CHARACTERS += ' '
     for old_char in FROM_CHARACTERS:
         a_name = a_name.replace(old_char, NEW_REPLACEMENT_CHAR)
 
@@ -142,6 +149,7 @@ def generate_group_dirname(a_name: str = '') -> str:
 
 def main():  # pylint: disable=too-many-statements,too-many-branches
     """Main program : running the command line."""
+    global OPTION_NO_SPACE_IN_FILENAME
 
     try:  # pylint: disable=too-many-nested-blocks
         parser = init_parser()
@@ -198,6 +206,9 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
 
         # comma auto escape
         vcardlib.OPTION_DO_NOT_FORCE_ESCAPE_COMMAS = args.do_not_force_escape_commas
+
+        # no space in filename
+        OPTION_NO_SPACE_IN_FILENAME = args.no_space_in_filename
 
 
         # check DESTDIR argument
