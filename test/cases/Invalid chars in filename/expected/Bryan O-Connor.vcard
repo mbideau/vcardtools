@@ -1,0 +1,6 @@
+BEGIN:VCARD
+VERSION:3.0
+EMAIL:bryan.oconnor@example.com
+FN:Bryan O'Connor
+N:O'Connor;Bryan;;;
+END:VCARD

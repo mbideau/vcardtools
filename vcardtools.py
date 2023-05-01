@@ -5,6 +5,7 @@ vCard and VCF files from version 2.1 to 3.0 (even large ones)."""
 
 import argparse
 import logging
+import re
 from sys import stderr, exit as sysexit
 from os import makedirs
 from os.path import exists, isfile, split as pathsplit
@@ -17,6 +18,9 @@ from vcardlib import (
     build_vcard,
     write_vcard_to_file)
 
+DEFAULT_VCARD_EXTENSION = '.vcard'
+OPTION_NO_SPACE_IN_FILENAME = False
+OPTION_REPLACE_INVALID_FILENAME_CHAR_BY = '_'
 
 def init_parser():
     """Setup the CLI argument parser with the definition of arguments and options."""
@@ -32,6 +36,10 @@ def init_parser():
     parser.add_argument(
         'files', metavar='FILES', nargs='+',
         help='The vcf/vcard files that contains vCards.'
+    )
+    parser.add_argument(
+        '-e', '--vcard-extension', dest='vcard_extension', type=str, default=DEFAULT_VCARD_EXTENSION,
+        help="The extension to use for vcard files. Default is: {dve}.".format(dve=DEFAULT_VCARD_EXTENSION)
     )
     parser.add_argument(
         '-g', '--group', dest='group_vcards', action='store_true',
@@ -101,8 +109,19 @@ def init_parser():
              "\"John Doe\" <john@doe.com>"
     )
     parser.add_argument(
-        '--do-not-force-escape-comas', dest='do_not_force_escape_comas', action='store_true',
-        help="Disable automatically escaping comas."
+        '--do-not-force-escape-commas', dest='do_not_force_escape_commas', action='store_true',
+        help="Disable automatically escaping commas."
+    )
+    parser.add_argument(
+        '--no-space-in-filename', dest='no_space_in_filename', action='store_true',
+        help="Replace space in generated filename by '" +
+             OPTION_REPLACE_INVALID_FILENAME_CHAR_BY + "' (or option --rep-invalid-fn-char-by)."
+    )
+    parser.add_argument(
+        '--rep-invalid-fn-char-by', dest='rep_invalid_fn_char_by', type=str,
+        default=OPTION_REPLACE_INVALID_FILENAME_CHAR_BY,
+        help="Replace invalid characters in filename by the specified character. Default to '" +
+             OPTION_REPLACE_INVALID_FILENAME_CHAR_BY + "'"
     )
     parser.add_argument(
         '-l', '--log-level', dest='log_level', default='INFO',
@@ -111,9 +130,33 @@ def init_parser():
     )
     return parser
 
+def sanitise_name(a_name: str) -> str:
+    """ Sanitise the name, basically a filename,
+        by removing characters which would cause a problem when creating a file in the OS
+        and replacing them with something safe (in this case, an underscore)
+    """
+    FROM_CHARACTERS = '.\\/"\'!@#?$%^&*|(){};:<>[]'
+    if OPTION_NO_SPACE_IN_FILENAME:
+        FROM_CHARACTERS = ' ' + FROM_CHARACTERS
+    a_name = re.sub(r'[' + FROM_CHARACTERS + ']*', OPTION_REPLACE_INVALID_FILENAME_CHAR_BY, a_name)
+
+    return re.sub(OPTION_REPLACE_INVALID_FILENAME_CHAR_BY + '+',
+                  OPTION_REPLACE_INVALID_FILENAME_CHAR_BY, a_name)
+
+def generate_vcard_filename(a_name: str = '', ext: str = '') -> str:
+    """ Make a vcard filename, by first sanitising the filename
+        and then adding the defined extension.
+    """
+    return sanitise_name(a_name=a_name) + ext
+
+def generate_group_dirname(a_name: str = '') -> str:
+    """ Return a group name, sanitised
+    """
+    return sanitise_name(a_name=a_name)
 
 def main():  # pylint: disable=too-many-statements,too-many-branches
     """Main program : running the command line."""
+    global OPTION_NO_SPACE_IN_FILENAME, OPTION_REPLACE_INVALID_FILENAME_CHAR_BY
 
     try:  # pylint: disable=too-many-nested-blocks
         parser = init_parser()
@@ -133,6 +176,9 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
             stderr.write("[ERROR] Invalid log level '" + args.log_level + "'\n\n")
             parser.print_help()
             sysexit(2)
+
+        # Set the extension to use when saving vcard files
+        the_vcard_ext = args.vcard_extension
 
         # no match approx
         vcardlib.OPTION_NO_MATCH_APPROX = args.no_match_approx
@@ -165,8 +211,14 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
         # french tweaks
         vcardlib.OPTION_FRENCH_TWEAKS = args.french_tweaks
 
-        # coma auto escape
-        vcardlib.OPTION_DOT_NOT_FORCE_ESCAPE_COMAS = args.do_not_force_escape_comas
+        # comma auto escape
+        vcardlib.OPTION_DO_NOT_FORCE_ESCAPE_COMMAS = args.do_not_force_escape_commas
+
+        # no space in filename
+        OPTION_NO_SPACE_IN_FILENAME = args.no_space_in_filename
+
+        # replacement of invalid chars in filename
+        OPTION_REPLACE_INVALID_FILENAME_CHAR_BY = args.rep_invalid_fn_char_by
 
 
         # check DESTDIR argument
@@ -227,7 +279,8 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
             for g_name, g_list in sorted(vcards_grouped.items()):
                 if len(g_list) > 1:
                     logging.debug("\t%s (%d vcards)", g_name, len(g_list))
-                    d_path = args.dest_dir + "/" + g_name.replace('/', '-')
+                    d_path = args.dest_dir + "/" + generate_group_dirname(g_name)
+                    # d_path = args.dest_dir + "/" + g_name.replace('/', '-')
 
                     # merge
                     if args.merge_vcards:
@@ -242,7 +295,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
                         # save the remaining attributes to the merged vCard
                         vcard_merge = build_vcard(attributes)
                         # write to the file
-                        write_vcard_to_file(vcard_merge, d_path + '.vcard')
+                        write_vcard_to_file(vcard_merge, d_path + the_vcard_ext)
 
                     # group
                     else:
@@ -252,7 +305,9 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
                             logging.debug("\t\t%s", key)
                             write_vcard_to_file(
                                 vcards[key],
-                                d_path + '/' + key.replace('/', '-') + '.vcard')
+                                d_path + '/' + generate_vcard_filename(key, the_vcard_ext))
+                                # d_path + '/' + sanitise_name(key) + '.vcard')
+                                # d_path + '/' + key.replace('/', '-') + '.vcard')
                 else: # should not happen
                     raise RuntimeError("Only one vcard in group '" + g_name + "' "
                                        "(should not happen)")
@@ -264,7 +319,9 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
                 for key in vcards_not_grouped:
                     write_vcard_to_file(
                         vcards[key],
-                        args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
+                        args.dest_dir + '/' + generate_vcard_filename(key, the_vcard_ext))
+                        # args.dest_dir + '/' + sanitise_name(key) + '.vcard')
+                        # args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
 
         # no grouping
         elif vcards:
@@ -272,7 +329,9 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
             # create vCard files not grouped in dest dir root
             logging.info("Creating '%d' not grouped vCard files (in root dir) ...", len(vcards))
             for key, vcard in vcards.items():
-                write_vcard_to_file(vcard, args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
+                write_vcard_to_file(vcard, args.dest_dir + '/' + generate_vcard_filename(key, the_vcard_ext))
+                # write_vcard_to_file(vcard, args.dest_dir + '/' + sanitise_name(key) + '.vcard')
+                # write_vcard_to_file(vcard, args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
 
 
     # user CTRL-C
