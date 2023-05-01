@@ -5,6 +5,7 @@ vCard and VCF files from version 2.1 to 3.0 (even large ones)."""
 
 import argparse
 import logging
+import re
 from sys import stderr, exit as sysexit
 from os import makedirs
 from os.path import exists, isfile, split as pathsplit
@@ -134,11 +135,10 @@ def sanitise_name(a_name: str) -> str:
         by removing characters which would cause a problem when creating a file in the OS
         and replacing them with something safe (in this case, an underscore)
     """
-    FROM_CHARACTERS = '.\\/"\'!@#?$%^&*|()[]{};:<>'
+    FROM_CHARACTERS = '.\\/"\'!@#?$%^&*|(){};:<>[]'
     if OPTION_NO_SPACE_IN_FILENAME:
-        FROM_CHARACTERS += ' '
-    for old_char in FROM_CHARACTERS:
-        a_name = a_name.replace(old_char, OPTION_REPLACE_INVALID_FILENAME_CHAR_BY)
+        FROM_CHARACTERS = ' ' + FROM_CHARACTERS
+    a_name = re.sub(r'[' + FROM_CHARACTERS + ']*', OPTION_REPLACE_INVALID_FILENAME_CHAR_BY, a_name)
 
     # An optional extra would be to remove all duplicates of the underscore
     return a_name
