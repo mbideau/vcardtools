@@ -19,6 +19,7 @@ from vcardlib import (
 
 DEFAULT_VCARD_EXTENSION = '.vcard'
 OPTION_NO_SPACE_IN_FILENAME = False
+OPTION_REPLACE_INVALID_FILENAME_CHAR_BY = '_'
 
 def init_parser():
     """Setup the CLI argument parser with the definition of arguments and options."""
@@ -112,7 +113,14 @@ def init_parser():
     )
     parser.add_argument(
         '--no-space-in-filename', dest='no_space_in_filename', action='store_true',
-        help="Replace space in generated filename by an underscore."
+        help="Replace space in generated filename by '" +
+             OPTION_REPLACE_INVALID_FILENAME_CHAR_BY + "' (or option --rep-invalid-fn-char-by)."
+    )
+    parser.add_argument(
+        '--rep-invalid-fn-char-by', dest='rep_invalid_fn_char_by', type=str,
+        default=OPTION_REPLACE_INVALID_FILENAME_CHAR_BY,
+        help="Replace invalid characters in filename by the specified character. Default to '" +
+             OPTION_REPLACE_INVALID_FILENAME_CHAR_BY + "'"
     )
     parser.add_argument(
         '-l', '--log-level', dest='log_level', default='INFO',
@@ -126,12 +134,11 @@ def sanitise_name(a_name: str) -> str:
         by removing characters which would cause a problem when creating a file in the OS
         and replacing them with something safe (in this case, an underscore)
     """
-    NEW_REPLACEMENT_CHAR = '_'
     FROM_CHARACTERS = '.\\/"\'!@#?$%^&*|()[]{};:<>'
     if OPTION_NO_SPACE_IN_FILENAME:
         FROM_CHARACTERS += ' '
     for old_char in FROM_CHARACTERS:
-        a_name = a_name.replace(old_char, NEW_REPLACEMENT_CHAR)
+        a_name = a_name.replace(old_char, OPTION_REPLACE_INVALID_FILENAME_CHAR_BY)
 
     # An optional extra would be to remove all duplicates of the underscore
     return a_name
@@ -149,7 +156,7 @@ def generate_group_dirname(a_name: str = '') -> str:
 
 def main():  # pylint: disable=too-many-statements,too-many-branches
     """Main program : running the command line."""
-    global OPTION_NO_SPACE_IN_FILENAME
+    global OPTION_NO_SPACE_IN_FILENAME, OPTION_REPLACE_INVALID_FILENAME_CHAR_BY
 
     try:  # pylint: disable=too-many-nested-blocks
         parser = init_parser()
@@ -209,6 +216,9 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
 
         # no space in filename
         OPTION_NO_SPACE_IN_FILENAME = args.no_space_in_filename
+
+        # replacement of invalid chars in filename
+        OPTION_REPLACE_INVALID_FILENAME_CHAR_BY = args.rep_invalid_fn_char_by
 
 
         # check DESTDIR argument
