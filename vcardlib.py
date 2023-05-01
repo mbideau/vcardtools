@@ -379,6 +379,8 @@ def select_most_relevant_name(names):
     longuest_length = 0
     pos = 0
     for name in names:
+        if name == "":
+            continue
         if not name:
             raise TypeError("parameter 'names[" + str(pos) + "]' is undefined")
         length = len_without_parenth_or_braces(name)
@@ -529,7 +531,7 @@ def collect_vcard_names(vcard):  # pylint: disable=too-many-statements,too-many-
             for attr_n in getattr(vcard, name_key + '_list'):
                 value = close_parentheses_or_braces(str(attr_n.value).strip())
                 if not REGEX_ONY_NON_ALPHANUM.match(value):
-                    if '@' in value:
+                    if value.count('@') == 1:
                         name = build_name_from_email(value)
                         if not name in available_names:
                             available_names.append(name)
@@ -779,6 +781,7 @@ def get_vcards_from_files(files, \
     logging.info("Reading/parsing individual vCard files ...")
     vcards = {}
     file_names_max_length = max([len(basename(x)) for x in files])
+    selected_name = None
     logging.debug("file names max length: %d", file_names_max_length)
     for f_path in files:
         f_name = basename(f_path)
@@ -787,7 +790,7 @@ def get_vcards_from_files(files, \
         if not do_not_fix_and_convert:
             content = fix_and_convert_to_v3(f_path)
         else:
-            with open(f_path, 'rU') as vfile:
+            with open(f_path, 'r') as vfile:
                 content = vfile.read()
 
         try:
@@ -930,7 +933,7 @@ def fix_and_convert_to_v3(file_path):  # pylint: disable=too-many-statements,too
     last_line = None
     line_endings = None
     started_quoted_printable = False
-    with open(file_path, 'rU') as vfile:
+    with open(file_path, 'r') as vfile:
 
         # read line by line
         for line in vfile:  # pylint: disable=too-many-nested-blocks
