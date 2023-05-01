@@ -129,7 +129,7 @@ def sanitise_name(a_name: str) -> str:
     # An optional extra would be to remove all duplicates of the underscore
     return a_name
 
-def mk_vcard_fnm(a_name: str = '', ext: str = '') -> str:
+def generate_vcard_filename(a_name: str = '', ext: str = '') -> str:
     """ Make a vcard filename, by first sanitising the filename
         and then adding the defined extension.
     """
@@ -280,7 +280,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
                             logging.debug("\t\t%s", key)
                             write_vcard_to_file(
                                 vcards[key],
-                                d_path + '/' + mk_vcard_fnm(key, the_vcard_ext))
+                                d_path + '/' + generate_vcard_filename(key, the_vcard_ext))
                                 # d_path + '/' + sanitise_name(key) + '.vcard')
                                 # d_path + '/' + key.replace('/', '-') + '.vcard')
                 else: # should not happen
@@ -294,7 +294,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
                 for key in vcards_not_grouped:
                     write_vcard_to_file(
                         vcards[key],
-                        args.dest_dir + '/' + mk_vcard_fnm(key, the_vcard_ext))
+                        args.dest_dir + '/' + generate_vcard_filename(key, the_vcard_ext))
                         # args.dest_dir + '/' + sanitise_name(key) + '.vcard')
                         # args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
 
@@ -304,7 +304,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
             # create vCard files not grouped in dest dir root
             logging.info("Creating '%d' not grouped vCard files (in root dir) ...", len(vcards))
             for key, vcard in vcards.items():
-                write_vcard_to_file(vcard, args.dest_dir + '/' + mk_vcard_fnm(key, the_vcard_ext))
+                write_vcard_to_file(vcard, args.dest_dir + '/' + generate_vcard_filename(key, the_vcard_ext))
                 # write_vcard_to_file(vcard, args.dest_dir + '/' + sanitise_name(key) + '.vcard')
                 # write_vcard_to_file(vcard, args.dest_dir + '/' + key.replace('/', '-') + '.vcard')
 
