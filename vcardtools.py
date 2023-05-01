@@ -135,6 +135,10 @@ def generate_vcard_filename(a_name: str = '', ext: str = '') -> str:
     """
     return sanitise_name(a_name=a_name) + ext
 
+def generate_group_dirname(a_name: str = '') -> str:
+    """ Return a group name, sanitised
+    """
+    return sanitise_name(a_name=a_name)
 
 def main():  # pylint: disable=too-many-statements,too-many-branches
     """Main program : running the command line."""
@@ -254,7 +258,7 @@ def main():  # pylint: disable=too-many-statements,too-many-branches
             for g_name, g_list in sorted(vcards_grouped.items()):
                 if len(g_list) > 1:
                     logging.debug("\t%s (%d vcards)", g_name, len(g_list))
-                    d_path = args.dest_dir + "/" + sanitise_name(g_name)
+                    d_path = args.dest_dir + "/" + generate_group_dirname(g_name)
                     # d_path = args.dest_dir + "/" + g_name.replace('/', '-')
 
                     # merge
