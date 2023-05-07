@@ -78,11 +78,14 @@ find "$cases_dir" -maxdepth 1 -type d -not -path "$cases_dir" | while read -r ca
         if [ "$failed" != 'true' ]; then
             echo "$case_name: FAIL (should have failed but did not)'"
             expectations_matched=false
-        elif ! diff -q "$case_exp" "$tmp_err" >/dev/null 2>&1; then
-            echo "$case_name: FAIL (expected file '$(basename "$case_exp")' differs)'"
-            expectations_matched=false
-            if [ "$DEBUG" = 'true' ]; then
-                diff --color=always "$case_exp" "$tmp_err" | sed 's/^/[DEBUG] /' >&2
+        else
+            sed "s|$project_dir/\?||g" -i "$tmp_err" # normalize paths
+            if ! diff -q "$case_exp" "$tmp_err" >/dev/null 2>&1; then
+                echo "$case_name: FAIL (expected file '$(basename "$case_exp")' differs)'"
+                expectations_matched=false
+                if [ "$DEBUG" = 'true' ]; then
+                    diff --color=always "$case_exp" "$tmp_err" | sed 's/^/[DEBUG] /' >&2
+                fi
             fi
         fi
     elif [ "$failed" = 'true' ]; then
