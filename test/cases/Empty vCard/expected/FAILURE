@@ -1,0 +1,15 @@
+ERROR    An exception occured when processing vCard [1] of file 'test/cases/Empty vCard/src/Empty_Apple.vcf'
+ERROR    Trying to select a name from an empty list of names
+ERROR    Maybe the file is invalid ? Please ensure it is not empty nor contains weird data and if needed exclude it from the batch and re-run it.
+Traceback (most recent call last):
+  File "vcardtools.py", line 344, in <module>
+    main()
+  File "vcardtools.py", line 265, in main
+    vcards = get_vcards_from_files( \
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "vcardlib.py", line 894, in get_vcards_from_files
+    selected_name = select_most_relevant_name(available_names)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "vcardlib.py", line 384, in select_most_relevant_name
+    raise ValueError("Trying to select a name from an empty list of names")
+ValueError: Trying to select a name from an empty list of names
