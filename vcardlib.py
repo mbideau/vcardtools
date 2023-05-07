@@ -17,6 +17,7 @@ import re
 import warnings
 import binascii
 from os.path import exists, basename
+from email.utils import parseaddr
 # @see: https://eventable.github.io/vobject/
 from vobject import vCard, readComponents
 from vobject.vcard import Name
@@ -48,6 +49,15 @@ REGEX_ANY_DASH_OR_UNDERSCORE = re.compile('[_-]')
 REGEX_ANY_NUMBER = re.compile('[0-9]')
 REGEX_WITHOUT_EXTENSION = re.compile('(.+)\\.[a-zA-Z]+$')
 REGEX_NAME_IN_EMAIL = re.compile('^ *"(?P<name>[^"]+)" *<[^>]+> *$')
+REGEX_EMAIL_SURROUNDINGS = [
+        re.compile(
+            '(?P<space_before>\\s*)\\[(?P<local>[^@]]+)@(?P<domain>[^]]+)\\](?P<space_after>\\s*)'),
+        re.compile(
+            '(?P<space_before>\\s*)\\((?P<local>[^@)]+)@(?P<domain>[^)]+)\\)(?P<space_after>\\s*)'),
+        re.compile(
+            '(?P<space_before>\\s*)"(?P<local>[^@"]+)@(?P<domain>[^"]+)"(?P<space_after>\\s*)'),
+        re.compile(
+            '(?P<space_before>\\s*)\'(?P<local>[^@\']+)@(?P<domain>[^\']+)\'(?P<space_after>\\s*)')]
 REGEX_EMAIL_WITH_NAME = re.compile('^ *"[^"]+" *<(?P<email>[^>]+)> *$')
 REGEX_INVALID_MAIL = re.compile('^nobody[a-z0-9]*@nowhere.invalid$')
 REGEX_ONY_NON_ALPHANUM = re.compile('^[ 	]*[^\\w]*[ 	]*$')
@@ -531,12 +541,87 @@ def collect_vcard_names(vcard):  # pylint: disable=too-many-statements,too-many-
             for attr_n in getattr(vcard, name_key + '_list'):
                 value = close_parentheses_or_braces(str(attr_n.value).strip())
                 if not REGEX_ONY_NON_ALPHANUM.match(value):
-                    if value.count('@') == 1:
-                        name = build_name_from_email(value)
-                        if not name in available_names:
-                            available_names.append(name)
-                            logging.debug("\t\tadding '%s' from built email for '%s'",
-                                          name, name_key)
+                    if '@' in value:
+                        normalized_value = value.strip()
+                        for regex in REGEX_EMAIL_SURROUNDINGS:
+                            normalized_value = regex.sub(
+                                '\\g<space_before><\\g<local>@\\g<domain>>\\g<space_after>',
+                                normalized_value).replace('<<', '<').replace('>>', '>')
+                        logging.debug("\t\tnormalized value '%s' from '%s'",
+                                      normalized_value, value)
+                        realname, email = parseaddr(normalized_value)
+                        logging.debug("\t\tparsed email: '%s', '%s' from '%s'",
+                                      realname, email, normalized_value)
+                        if realname or email:
+
+                            # Special case to be able to process value with double email like:
+                            # "1st.email@example.com <2nd.email@example.com>"
+                            # In this case, the parsing will return an empty name, and the 1st
+                            # email as email, ignoring the second one.
+                            # In order to force the processing of the second email, we remove
+                            # the 1st email from the original value and re-parse to get the 2nd
+                            # one.
+                            if not realname and email and normalized_value.count('@') == 2:
+                                realname = email
+                                _, email = parseaddr(normalized_value.replace(email, ''))
+                                logging.debug("\t\tforce parsed email: '%s', '%s' from '%s'",
+                                                    realname, email, normalized_value)
+
+                            if realname:
+                                if '@' in realname:
+                                    normalized_realname = realname.strip()
+                                    for regex in REGEX_EMAIL_SURROUNDINGS:
+                                        normalized_realname = regex.sub(
+                                                '\\g<space_before><\\g<local>@'
+                                                '\\g<domain>>\\g<space_after>',
+                                                normalized_realname).\
+                                            replace('<<', '<').replace('>>', '>')
+                                    logging.debug("\t\tnormalized sub-value '%s' from '%s'",
+                                                normalized_realname, realname)
+                                    _realname, _email = parseaddr(normalized_realname)
+                                    logging.debug("\t\tparsed email: '%s', '%s' from '%s'",
+                                      _realname, _email, normalized_realname)
+                                    if _realname or _email:
+                                        if _realname:
+                                            name = sanitize_name(_realname)
+                                            if not name in available_names:
+                                                available_names.append(name)
+                                                logging.debug(
+                                                    "\t\tadding '%s' from built email for '%s'",
+                                                    name, name_key)
+                                        if _email:
+                                            name = build_name_from_email(_email)
+                                            if not name in available_names:
+                                                available_names.append(name)
+                                                logging.debug(
+                                                    "\t\tadding '%s' from built email for '%s'",
+                                                    name, name_key)
+                                    elif normalized_realname.count('@') == 1:
+                                        name = build_name_from_email(normalized_realname)
+                                        if not name in available_names:
+                                            available_names.append(name)
+                                            logging.debug(
+                                                "\t\tadding '%s' from built email for '%s'",
+                                                name, name_key)
+                                    else:
+                                        logging.debug(
+                                            "\t\tcan't parse name value containing email '%s'",
+                                            normalized_realname)
+                            if email:
+                                name = build_name_from_email(email)
+                                if not name in available_names:
+                                    available_names.append(name)
+                                    logging.debug("\t\tadding '%s' from built email for '%s'",
+                                              name, name_key)
+                        elif normalized_value.count('@') == 1:
+                            name = build_name_from_email(normalized_value)
+                            if not name in available_names:
+                                available_names.append(name)
+                                logging.debug("\t\tadding '%s' from built email for '%s'",
+                                              name, name_key)
+                        else:
+                            logging.debug("\t\tcan't parse name value containing email '%s'",
+                                          normalized_value)
                     else:
                         name = sanitize_name(value)
                         if not name in available_names:

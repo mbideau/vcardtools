@@ -1,0 +1,6 @@
+BEGIN:VCARD
+VERSION:3.0
+N:ParenthesesEmail;Double;;;
+FN:first.email@example.com (second.email@example.com)
+EMAIL:double.parentheses_email@example.com
+END:VCARD

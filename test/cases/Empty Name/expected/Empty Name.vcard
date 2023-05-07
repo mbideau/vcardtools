@@ -1,0 +1,6 @@
+BEGIN:VCARD
+VERSION:3.0
+EMAIL:empty.name@example.com
+FN:Empty Name
+N:Name;Empty;;;
+END:VCARD

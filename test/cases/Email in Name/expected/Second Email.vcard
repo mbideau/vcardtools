@@ -1,0 +1,6 @@
+BEGIN:VCARD
+VERSION:3.0
+EMAIL:double.email@example.com
+FN:Second Email
+N:Email;Second;;;
+END:VCARD
