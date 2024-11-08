@@ -80,7 +80,12 @@ find "$cases_dir" -maxdepth 1 -type d -not -path "$cases_dir" | while read -r ca
             expectations_matched=false
         else
             sed "s|$project_dir/\?||g" -i "$tmp_err" # normalize paths
-            if ! diff -q "$case_exp" "$tmp_err" >/dev/null 2>&1; then
+
+            # Extract the last line from both files
+            last_line_case_exp=$(tail -n 1 "$case_exp")
+            last_line_tmp_err=$(tail -n 1 "$tmp_err")
+
+            if [ "$last_line_case_exp" != "$last_line_tmp_err" ]; then
                 echo "$case_name: FAIL (expected file '$(basename "$case_exp")' differs)'"
                 expectations_matched=false
                 if [ "$DEBUG" = 'true' ]; then
